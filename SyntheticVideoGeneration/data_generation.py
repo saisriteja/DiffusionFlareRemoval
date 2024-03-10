@@ -30,11 +30,6 @@ class WebVid10M(Dataset):
         
         sample_size = tuple(sample_size) if not isinstance(sample_size, int) else (sample_size, sample_size)
         
-        
-        # self.dist_transform = A.Compose(
-        #                     [A.RandomSunFlare(flare_roi=(0, 0, 1, 0.5), angle_lower=0.5, p=1)],
-        #                 )
-        
         self.pixel_transforms = transforms.Compose([
             transforms.RandomHorizontalFlip(),
             transforms.Resize(sample_size[0]),
@@ -65,7 +60,12 @@ class WebVid10M(Dataset):
         data = video_reader.get_batch(batch_index).asnumpy()
         # data = np.array([self.dist_transform(image=img)['image'] for img in data])
 
+        print("started flare distortion")
+
         flare_vid, base_vid, merge_vid = flare_distortion(data)
+
+        # print("added flare distortion")
+
         # f = f.permute(1,2,0)
         # f = f.numpy()
         
@@ -92,6 +92,7 @@ class WebVid10M(Dataset):
         #     img_tmp = img_tmp * 255
         #     cv2.imwrite(f"distorted_flare_{i}.png", img_tmp)
 
+        print("stacked the tensors")
 
         pixel_values = merge_vid
         del video_reader
@@ -114,6 +115,25 @@ class WebVid10M(Dataset):
                 idx = random.randint(0, self.length-1)
         pixel_values = self.pixel_transforms(pixel_values)
         sample = dict(pixel_values=pixel_values, text=name)
+        # print(sample.shape)
+        # print(sample["pixel_values"].shape)
+
+        print(sample["pixel_values"].shape, len(sample["text"]))
+
+        for no,img in enumerate(sample["pixel_values"]):
+            print(img.shape)
+            img = img.permute(1,2,0)
+            img = (img + 1.0) / 2.0
+
+            # get the values between 0 to 1
+            img = img.numpy()
+
+            # print min and max 
+            img = img * 255
+            print(np.min(img), np.max(img))
+            cv2.imwrite(f"distorted_Ings_{no}.png", img)
+
+
         return sample
 
 
@@ -148,7 +168,7 @@ if __name__ == "__main__":
         video_folder="vids/",
         sample_size=512,
         sample_stride=4, 
-        sample_n_frames=16,
+        sample_n_frames=6,
         is_image=False,
     )
     # import pdb
@@ -156,21 +176,29 @@ if __name__ == "__main__":
     
 
     print("making the dataloader")
+
     dataloader = torch.utils.data.DataLoader(dataset, batch_size=1, num_workers=4,)
+
+
+    data = next(iter(dataloader))
+    print(data["pixel_values"].shape, len(data["text"]))
+
+
+
     for idx, batch in enumerate(dataloader):
         print(batch["pixel_values"].shape, len(batch["text"]))
-        for no,img in enumerate(batch["pixel_values"][0]):
-            print(img.shape)
-            img = img.permute(1,2,0)
-            img = (img + 1.0) / 2.0
+        print(batch["pixel_values"].shape)
+        # for no,img in enumerate(batch["pixel_values"][0]):
+        #     img = img.permute(1,2,0)
+        #     img = (img + 1.0) / 2.0
 
-            # get the values between 0 to 1
-            img = img.numpy()
+        #     # get the values between 0 to 1
+        #     img = img.numpy()
 
-            # print min and max 
-            img = img * 255
-            print(np.min(img), np.max(img))
-            cv2.imwrite(f"distorted_Ings_{no}.png", img)
+        #     # print min and max 
+        #     img = img * 255
+        #     print(np.min(img), np.max(img))
+        #     cv2.imwrite(f"distorted_Ings_{no}.png", img)
 
 
         # for i in range(batch["pixel_values"].shape[0]):

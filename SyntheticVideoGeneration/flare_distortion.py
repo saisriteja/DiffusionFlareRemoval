@@ -39,7 +39,6 @@ gamma=np.random.uniform(1.8,2.2)
 to_tensor=transforms.ToTensor()
 adjust_gamma=RandomGammaCorrection(gamma)
 adjust_gamma_reverse=RandomGammaCorrection(1/gamma)
-# color_jitter=transforms.ColorJitter(brightness=(0.8,3),hue=0.0)
 
 
 from PIL import Image
@@ -51,8 +50,8 @@ from glob import glob
 import cv2
 
 def flare_distortion(base_imgs,
-					 flare_path = '/media/cilab/data/NTIRE/flare/Flare7Kpp/Flare7K/Scattering_Flare/Compound_Flare',
-					 reflective_path = '/media/cilab/data/NTIRE/flare/Flare7Kpp/Flare7K/Reflective_Flare',
+					 flare_path = './Flare7Kpp/Flare7K/Scattering_Flare/Compound_Flare',
+					 reflective_path = './Flare7Kpp/Flare7K/Reflective_Flare',
 					 flare_no= 0,
 					 reflective_no = 0):
     transform_flare=transforms.Compose([transforms.RandomAffine(degrees=(0,360),
